@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ar">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>مولد صور AI (GitHub Pages)</title>
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,"Noto Sans",Arial;max-width:980px;margin:28px auto;padding:0 16px;color:#111}
+    h1{font-size:1.6rem;margin-bottom:6px}
+    .card{border:1px solid #e6e6e6;border-radius:10px;padding:12px;margin-top:12px;box-shadow:0 6px 18px rgba(0,0,0,0.04)}
+    label{display:block;margin-top:10px}
+    input[type=text],textarea,select{width:100%;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #ccc}
+    button{margin-top:10px;padding:10px 14px;border-radius:8px;border:0;background:#0b66ff;color:white;cursor:pointer}
+    canvas{width:512px;height:512px;border-radius:8px;display:block}
+    .small{font-size:0.85rem;color:#555}
+    .row{display:flex;gap:12px;align-items:center}
+    .col{flex:1}
+  </style>
+</head>
+<body>
+  <h1>مولد صور AI — جاهز للرفع على GitHub Pages</h1>
+  <p class="small">هذا مثال بسيط يستخدم مكتبات مفتوحة المصدر (تعمل في المتصفح عبر WebGPU / WebAssembly) لتوليد صور من نص. اقرأ الملاحظات أسفل الصفحة قبل النشر.</p>
+
+  <div class="card">
+    <label>النص الوصفي (Prompt)</label>
+    <textarea id="prompt" rows="3">فتاة واقفة على رصيف مدينة ليلاً — أسلوب فوتورياليستي</textarea>
+
+    <div class="row">
+      <div class="col">
+        <label>خطوات الاستدلال (numInferenceSteps)</label>
+        <input id="steps" type="text" value="20" />
+      </div>
+      <div style="width:160px">
+        <label>حجم الصورة</label>
+        <select id="size">
+          <option value="512">512 × 512</option>
+          <option value="768">768 × 768</option>
+        </select>
+      </div>
+    </div>
+
+    <button id="generate">توليد الصورة</button>
+    <p id="status" class="small">الحالة: جاهز</p>
+
+    <div style="margin-top:12px">
+      <canvas id="canvas" width="512" height="512"></canvas>
+    </div>
+
+    <p class="small">ملاحظات مهمة: هذا المثال يعتمد على <em>WebGPU / WebAssembly</em> وتشغيل النماذج بالكامل داخل المتصفح (مجهودات مثل <code>web-stable-diffusion</code> و <code>diffusers.js</code>). المتصفح يجب أن يدعم WebGPU (Chrome Canary / أحدث إصدارات مستقرة على بعض الأنظمة). تحميل النموذج قد يحتاج ذاكرة كبيرة وسيأخذ وقتاً.</p>
+  </div>
+
+  <div class="card">
+    <h3>تعليمات سريعة للرفع على GitHub Pages</h3>
+    <ol class="small">
+      <li>أنشئ repository جديد وادفع هذا الملف باسم <code>index.html</code>.</li>
+      <li>افعل GitHub Pages من إعدادات الريبو (branch: main / folder: /root).</li>
+      <li>ملاحظة: تشغيل النماذج داخل المتصفح قد يتطلب بناء/نشر ملفات نموذج (weights) على CDN أو استخدام نسخ مُحسنة — راجع روابط المكتبات.</li>
+    </ol>
+  </div>
+
+<!--
+  ملاحظة تقنية (داخل التعليق):
+  هذا المثال يستخدم الاستيراد من esm.sh ليتيح استخدام الحزمة مباشرة في صفحة ثابتة.
+  في الواقع، بعض المكتبات تحتاج إعدادًا عبر npm / build step أو استضافة ملفات نماذج كبيرة.
+  قد تحتاج إلى استضافة ملفات النماذج (weights) في مكان يمكن الوصول إليه عبر CORS.
+-->
+
+<script type="module">
+// مثال تعليمي: محاولة استيراد diffusers.js من CDN (esm.sh).
+// ملاحظة: قد تحتاج إلى إعداد build محلي أو استضافة حزمتك الخاصة.
+// إذا لم يعمل هذا الاستيراد في GitHub Pages على المتصفح المستهدف،
+// الحل العملي هو بناء واجهة React/ESM محلياً ثم رفع ملفات الناتج.
+
+const statusEl = document.getElementById('status');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const btn = document.getElementById('generate');
+
+async function setStatus(t){ statusEl.textContent = 'الحالة: ' + t }
+
+btn.addEventListener('click', async ()=>{
+  const prompt = document.getElementById('prompt').value;
+  const steps = parseInt(document.getElementById('steps').value) || 20;
+  const sizeVal = parseInt(document.getElementById('size').value) || 512;
+  canvas.width = sizeVal; canvas.height = sizeVal;
+
+  setStatus('تحميل المكتبة في المتصفح — قد يستغرق وقتاً');
+
+  try{
+    // استيراد diffusers.js عبر esm.sh. قد يفشل على بعض البيئات أو يحتاج build.
+    const pkg = await import('https://esm.sh/@aislamov/diffusers.js@0.0.15');
+    const { DiffusionPipeline } = pkg;
+
+    setStatus('بناء pipeline من نموذج مُسبق (سيُحمّل بيانات النموذج)');
+
+    // يُستخدم نموذج مُنشر كمثال؛ تحميل النماذج الكبيرة قد يفشل على GitHub Pages
+    // لأن الحزمة قد تحاول جلب ملفات نموذج كبيرة من Hugging Face (يتطلب CORS/permissions).
+    const pipe = await DiffusionPipeline.fromPretrained('aislamov/stable-diffusion-2-1-base-onnx', { revision: 'cpu' });
+
+    setStatus('يجري التوليد — انتظر...');
+
+    const images = await pipe.run({ prompt, numInferenceSteps: steps });
+
+    // وضع أول صورة على الكانفاس
+    const imgData = await images[0].toImageData({ tensorLayout: 'NCWH', format: 'RGB' });
+    ctx.putImageData(imgData, 0, 0);
+
+    setStatus('تم التوليد! اضغط بزر الماوس الأيمن لحفظ الصورة.');
+  }catch(err){
+    console.error(err);
+    setStatus('فشل التشغيل في المتصفح: ' + (err?.message || err));
+    alert('فشل التشغيل داخل المتصفح. راجع ملاحظات الكونسول وتحقق من دعم WebGPU ووجود ملفات النموذج.');
+  }
+});
+</script>
+</body>
+</html>
