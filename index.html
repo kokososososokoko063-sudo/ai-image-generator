@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>مولد صور الذكاء الاصطناعي - Stable Horde</title>
+  <title>مولد صور الذكاء الاصطناعي - Stable Horde (إصدار جديد)</title>
   <style>
     body{font-family:system-ui,Segoe UI,Roboto,"Noto Sans Arabic",Arial;background:#f8f9fb;margin:0;padding:0;direction:rtl;color:#222}
     header{background:#0b66ff;color:white;padding:16px;text-align:center}
@@ -44,7 +44,7 @@
   </div>
 
   <footer>
-    <p>يعمل باستخدام <a href="https://stablehorde.net/" target="_blank">Stable Horde</a> API المفتوحة المصدر.</p>
+    <p>يعمل باستخدام <a href="https://aihorde.net/" target="_blank">AI Horde</a> API المفتوحة المصدر.</p>
   </footer>
 </main>
 
@@ -68,11 +68,10 @@ btn.addEventListener("click", async ()=>{
   const height = parseInt(size[1]);
 
   btn.disabled = true;
-  setStatus("جاري إرسال الطلب إلى Stable Horde...");
+  setStatus("جاري إرسال الطلب إلى AI Horde...");
 
   try{
-    // إرسال الطلب إلى واجهة Stable Horde
-    const request = await fetch("https://stablehorde.net/api/v2/generate/async", {
+    const request = await fetch("https://aihorde.net/api/v2/generate/async", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -92,16 +91,15 @@ btn.addEventListener("click", async ()=>{
     });
 
     const data = await request.json();
-    if(!data.id) throw new Error("لم يتم استلام معرّف المهمة.");
+    if(!data.id) throw new Error("لم يتم استلام معرّف المهمة من الخادم.");
 
     const jobId = data.id;
     setStatus("تم إرسال الطلب، جاري الانتظار حتى تُولّد الصورة...");
 
-    // الانتظار حتى تكتمل المهمة
     let finished = false, imageData = null;
     while(!finished){
       await new Promise(r=>setTimeout(r, 4000));
-      const check = await fetch(`https://stablehorde.net/api/v2/generate/status/${jobId}`);
+      const check = await fetch(`https://aihorde.net/api/v2/generate/status/${jobId}`);
       const checkData = await check.json();
 
       if(checkData.done){
