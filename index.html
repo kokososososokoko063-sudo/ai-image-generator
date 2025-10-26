@@ -3,114 +3,131 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>مولد صور AI (GitHub Pages)</title>
+  <title>مولد صور الذكاء الاصطناعي - Stable Horde</title>
   <style>
-    body{font-family:system-ui,Segoe UI,Roboto,"Noto Sans",Arial;max-width:980px;margin:28px auto;padding:0 16px;color:#111}
-    h1{font-size:1.6rem;margin-bottom:6px}
-    .card{border:1px solid #e6e6e6;border-radius:10px;padding:12px;margin-top:12px;box-shadow:0 6px 18px rgba(0,0,0,0.04)}
-    label{display:block;margin-top:10px}
-    input[type=text],textarea,select{width:100%;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #ccc}
-    button{margin-top:10px;padding:10px 14px;border-radius:8px;border:0;background:#0b66ff;color:white;cursor:pointer}
-    canvas{width:512px;height:512px;border-radius:8px;display:block}
-    .small{font-size:0.85rem;color:#555}
-    .row{display:flex;gap:12px;align-items:center}
-    .col{flex:1}
+    body{font-family:system-ui,Segoe UI,Roboto,"Noto Sans Arabic",Arial;background:#f8f9fb;margin:0;padding:0;direction:rtl;color:#222}
+    header{background:#0b66ff;color:white;padding:16px;text-align:center}
+    h1{margin:0;font-size:1.6rem}
+    main{max-width:880px;margin:20px auto;padding:16px}
+    .card{background:white;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.05);padding:18px;margin-top:14px}
+    label{display:block;margin-top:8px;font-weight:500}
+    textarea,input,select{width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:8px;font-size:1rem}
+    button{margin-top:12px;padding:10px 18px;border-radius:8px;border:0;background:#0b66ff;color:white;cursor:pointer;font-size:1rem}
+    button:disabled{opacity:0.6;cursor:not-allowed}
+    #status{font-size:0.9rem;color:#444;margin-top:10px}
+    img{max-width:100%;border-radius:10px;margin-top:12px;display:block}
+    footer{margin-top:40px;text-align:center;font-size:0.8rem;color:#555}
   </style>
 </head>
 <body>
-  <h1>مولد صور AI — جاهز للرفع على GitHub Pages</h1>
-  <p class="small">هذا مثال بسيط يستخدم مكتبات مفتوحة المصدر (تعمل في المتصفح عبر WebGPU / WebAssembly) لتوليد صور من نص. اقرأ الملاحظات أسفل الصفحة قبل النشر.</p>
-
+<header>
+  <h1>🧠 مولد الصور بالذكاء الاصطناعي (Stable Horde)</h1>
+</header>
+<main>
   <div class="card">
     <label>النص الوصفي (Prompt)</label>
-    <textarea id="prompt" rows="3">فتاة واقفة على رصيف مدينة ليلاً — أسلوب فوتورياليستي</textarea>
+    <textarea id="prompt" rows="3">غابة خضراء فيها نهر وضوء غروب الشمس بأسلوب واقعي</textarea>
 
-    <div class="row">
-      <div class="col">
-        <label>خطوات الاستدلال (numInferenceSteps)</label>
-        <input id="steps" type="text" value="20" />
-      </div>
-      <div style="width:160px">
-        <label>حجم الصورة</label>
-        <select id="size">
-          <option value="512">512 × 512</option>
-          <option value="768">768 × 768</option>
-        </select>
-      </div>
-    </div>
+    <label>عدد الخطوات (Steps)</label>
+    <input id="steps" type="number" value="20" min="10" max="50" />
+
+    <label>حجم الصورة</label>
+    <select id="size">
+      <option value="512x512">512 × 512</option>
+      <option value="768x512">768 × 512</option>
+      <option value="512x768">512 × 768</option>
+    </select>
 
     <button id="generate">توليد الصورة</button>
-    <p id="status" class="small">الحالة: جاهز</p>
-
-    <div style="margin-top:12px">
-      <canvas id="canvas" width="512" height="512"></canvas>
-    </div>
-
-    <p class="small">ملاحظات مهمة: هذا المثال يعتمد على <em>WebGPU / WebAssembly</em> وتشغيل النماذج بالكامل داخل المتصفح (مجهودات مثل <code>web-stable-diffusion</code> و <code>diffusers.js</code>). المتصفح يجب أن يدعم WebGPU (Chrome Canary / أحدث إصدارات مستقرة على بعض الأنظمة). تحميل النموذج قد يحتاج ذاكرة كبيرة وسيأخذ وقتاً.</p>
+    <p id="status">الحالة: جاهز</p>
+    <img id="result" alt="الصورة الناتجة" />
   </div>
 
-  <div class="card">
-    <h3>تعليمات سريعة للرفع على GitHub Pages</h3>
-    <ol class="small">
-      <li>أنشئ repository جديد وادفع هذا الملف باسم <code>index.html</code>.</li>
-      <li>افعل GitHub Pages من إعدادات الريبو (branch: main / folder: /root).</li>
-      <li>ملاحظة: تشغيل النماذج داخل المتصفح قد يتطلب بناء/نشر ملفات نموذج (weights) على CDN أو استخدام نسخ مُحسنة — راجع روابط المكتبات.</li>
-    </ol>
-  </div>
+  <footer>
+    <p>يعمل باستخدام <a href="https://stablehorde.net/" target="_blank">Stable Horde</a> API المفتوحة المصدر.</p>
+  </footer>
+</main>
 
-<!--
-  ملاحظة تقنية (داخل التعليق):
-  هذا المثال يستخدم الاستيراد من esm.sh ليتيح استخدام الحزمة مباشرة في صفحة ثابتة.
-  في الواقع، بعض المكتبات تحتاج إعدادًا عبر npm / build step أو استضافة ملفات نماذج كبيرة.
-  قد تحتاج إلى استضافة ملفات النماذج (weights) في مكان يمكن الوصول إليه عبر CORS.
--->
+<script>
+const btn = document.getElementById("generate");
+const promptEl = document.getElementById("prompt");
+const stepsEl = document.getElementById("steps");
+const sizeEl = document.getElementById("size");
+const statusEl = document.getElementById("status");
+const resultEl = document.getElementById("result");
 
-<script type="module">
-// مثال تعليمي: محاولة استيراد diffusers.js من CDN (esm.sh).
-// ملاحظة: قد تحتاج إلى إعداد build محلي أو استضافة حزمتك الخاصة.
-// إذا لم يعمل هذا الاستيراد في GitHub Pages على المتصفح المستهدف،
-// الحل العملي هو بناء واجهة React/ESM محلياً ثم رفع ملفات الناتج.
+async function setStatus(msg){ statusEl.textContent = "الحالة: " + msg; }
 
-const statusEl = document.getElementById('status');
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const btn = document.getElementById('generate');
+btn.addEventListener("click", async ()=>{
+  const prompt = promptEl.value.trim();
+  if(!prompt){ alert("اكتب وصف الصورة أولاً."); return; }
 
-async function setStatus(t){ statusEl.textContent = 'الحالة: ' + t }
+  const steps = parseInt(stepsEl.value) || 20;
+  const size = sizeEl.value.split("x");
+  const width = parseInt(size[0]);
+  const height = parseInt(size[1]);
 
-btn.addEventListener('click', async ()=>{
-  const prompt = document.getElementById('prompt').value;
-  const steps = parseInt(document.getElementById('steps').value) || 20;
-  const sizeVal = parseInt(document.getElementById('size').value) || 512;
-  canvas.width = sizeVal; canvas.height = sizeVal;
-
-  setStatus('تحميل المكتبة في المتصفح — قد يستغرق وقتاً');
+  btn.disabled = true;
+  setStatus("جاري إرسال الطلب إلى Stable Horde...");
 
   try{
-    // استيراد diffusers.js عبر esm.sh. قد يفشل على بعض البيئات أو يحتاج build.
-    const pkg = await import('https://esm.sh/@aislamov/diffusers.js@0.0.15');
-    const { DiffusionPipeline } = pkg;
+    // إرسال الطلب إلى واجهة Stable Horde
+    const request = await fetch("https://stablehorde.net/api/v2/generate/async", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Client-Agent": "AI-Image-Generator-HTML:1.0"
+      },
+      body: JSON.stringify({
+        prompt,
+        params: {
+          width,
+          height,
+          steps,
+          n: 1,
+          sampler_name: "k_euler_a"
+        },
+        nsfw: false
+      })
+    });
 
-    setStatus('بناء pipeline من نموذج مُسبق (سيُحمّل بيانات النموذج)');
+    const data = await request.json();
+    if(!data.id) throw new Error("لم يتم استلام معرّف المهمة.");
 
-    // يُستخدم نموذج مُنشر كمثال؛ تحميل النماذج الكبيرة قد يفشل على GitHub Pages
-    // لأن الحزمة قد تحاول جلب ملفات نموذج كبيرة من Hugging Face (يتطلب CORS/permissions).
-    const pipe = await DiffusionPipeline.fromPretrained('aislamov/stable-diffusion-2-1-base-onnx', { revision: 'cpu' });
+    const jobId = data.id;
+    setStatus("تم إرسال الطلب، جاري الانتظار حتى تُولّد الصورة...");
 
-    setStatus('يجري التوليد — انتظر...');
+    // الانتظار حتى تكتمل المهمة
+    let finished = false, imageData = null;
+    while(!finished){
+      await new Promise(r=>setTimeout(r, 4000));
+      const check = await fetch(`https://stablehorde.net/api/v2/generate/status/${jobId}`);
+      const checkData = await check.json();
 
-    const images = await pipe.run({ prompt, numInferenceSteps: steps });
+      if(checkData.done){
+        finished = true;
+        if(checkData.generations && checkData.generations[0]){
+          imageData = checkData.generations[0].img;
+        }
+      }else{
+        setStatus(`الصور قيد المعالجة... (${checkData.wait_time.toFixed(1)} ثانية تقريباً)`);
+      }
+    }
 
-    // وضع أول صورة على الكانفاس
-    const imgData = await images[0].toImageData({ tensorLayout: 'NCWH', format: 'RGB' });
-    ctx.putImageData(imgData, 0, 0);
+    if(imageData){
+      resultEl.src = imageData;
+      setStatus("✅ تم توليد الصورة بنجاح!");
+    }else{
+      throw new Error("لم يتم استلام الصورة من الخادم.");
+    }
 
-    setStatus('تم التوليد! اضغط بزر الماوس الأيمن لحفظ الصورة.');
   }catch(err){
     console.error(err);
-    setStatus('فشل التشغيل في المتصفح: ' + (err?.message || err));
-    alert('فشل التشغيل داخل المتصفح. راجع ملاحظات الكونسول وتحقق من دعم WebGPU ووجود ملفات النموذج.');
+    setStatus("❌ فشل: " + err.message);
+    alert("حدث خطأ أثناء التوليد. تحقق من اتصال الإنترنت أو أعد المحاولة لاحقاً.");
   }
+
+  btn.disabled = false;
 });
 </script>
 </body>
