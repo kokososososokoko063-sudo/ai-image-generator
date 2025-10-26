@@ -1,132 +1,87 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>مولد صور الذكاء الاصطناعي - Stable Horde (إصدار جديد)</title>
-  <style>
-    body{font-family:system-ui,Segoe UI,Roboto,"Noto Sans Arabic",Arial;background:#f8f9fb;margin:0;padding:0;direction:rtl;color:#222}
-    header{background:#0b66ff;color:white;padding:16px;text-align:center}
-    h1{margin:0;font-size:1.6rem}
-    main{max-width:880px;margin:20px auto;padding:16px}
-    .card{background:white;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.05);padding:18px;margin-top:14px}
-    label{display:block;margin-top:8px;font-weight:500}
-    textarea,input,select{width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:8px;font-size:1rem}
-    button{margin-top:12px;padding:10px 18px;border-radius:8px;border:0;background:#0b66ff;color:white;cursor:pointer;font-size:1rem}
-    button:disabled{opacity:0.6;cursor:not-allowed}
-    #status{font-size:0.9rem;color:#444;margin-top:10px}
-    img{max-width:100%;border-radius:10px;margin-top:12px;display:block}
-    footer{margin-top:40px;text-align:center;font-size:0.8rem;color:#555}
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>مولد الصور بالذكاء الاصطناعي - Stable Horde</title>
+<style>
+body {
+  font-family: "Cairo", sans-serif;
+  background: linear-gradient(135deg, #0d1117, #161b22);
+  color: #fff;
+  text-align: center;
+  margin: 0;
+  padding: 2rem;
+}
+.container {
+  max-width: 600px;
+  margin: auto;
+  background: #1e232a;
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 0 15px #000;
+}
+input, select, button {
+  width: 100%;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  font-size: 1rem;
+}
+button {
+  background: #00aaff;
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+button:hover {
+  background: #007acc;
+}
+#status {
+  margin-top: 10px;
+}
+#result img {
+  max-width: 100%;
+  border-radius: 10px;
+  margin-top: 15px;
+}
+</style>
 </head>
 <body>
-<header>
-  <h1>🧠 مولد الصور بالذكاء الاصطناعي (Stable Horde)</h1>
-</header>
-<main>
-  <div class="card">
-    <label>النص الوصفي (Prompt)</label>
-    <textarea id="prompt" rows="3">غابة خضراء فيها نهر وضوء غروب الشمس بأسلوب واقعي</textarea>
-
-    <label>عدد الخطوات (Steps)</label>
-    <input id="steps" type="number" value="20" min="10" max="50" />
-
-    <label>حجم الصورة</label>
-    <select id="size">
-      <option value="512x512">512 × 512</option>
-      <option value="768x512">768 × 512</option>
-      <option value="512x768">512 × 768</option>
+  <div class="container">
+    <h1>🧠 مولد الصور بالذكاء الاصطناعي</h1>
+    <p>اكتب وصفاً للصورة التي تريد إنشاؤها:</p>
+    <input type="text" id="prompt" placeholder="مثال: قطة ترتدي قبعة فضائية" />
+    <select id="model">
+      <option value="stable_diffusion">Stable Diffusion</option>
+      <option value="stable_diffusion_2.1">Stable Diffusion 2.1</option>
     </select>
-
     <button id="generate">توليد الصورة</button>
-    <p id="status">الحالة: جاهز</p>
-    <img id="result" alt="الصورة الناتجة" />
+    <div id="status"></div>
+    <div id="result"></div>
   </div>
 
-  <footer>
-    <p>يعمل باستخدام <a href="https://aihorde.net/" target="_blank">AI Horde</a> API المفتوحة المصدر.</p>
-  </footer>
-</main>
-
 <script>
-const btn = document.getElementById("generate");
-const promptEl = document.getElementById("prompt");
-const stepsEl = document.getElementById("steps");
-const sizeEl = document.getElementById("size");
-const statusEl = document.getElementById("status");
-const resultEl = document.getElementById("result");
+async function generateImage() {
+  const prompt = document.getElementById("prompt").value.trim();
+  const model = document.getElementById("model").value;
+  const status = document.getElementById("status");
+  const result = document.getElementById("result");
 
-async function setStatus(msg){ statusEl.textContent = "الحالة: " + msg; }
+  if (!prompt) {
+    alert("الرجاء إدخال وصف للصورة!");
+    return;
+  }
 
-btn.addEventListener("click", async ()=>{
-  const prompt = promptEl.value.trim();
-  if(!prompt){ alert("اكتب وصف الصورة أولاً."); return; }
+  result.innerHTML = "";
+  status.innerText = "⏳ جاري إرسال الطلب إلى الخادم...";
 
-  const steps = parseInt(stepsEl.value) || 20;
-  const size = sizeEl.value.split("x");
-  const width = parseInt(size[0]);
-  const height = parseInt(size[1]);
-
-  btn.disabled = true;
-  setStatus("جاري إرسال الطلب إلى AI Horde...");
-
-  try{
-    const request = await fetch("https://aihorde.net/api/v2/generate/async", {
+  try {
+    // إرسال الطلب إلى Stable Horde API
+    const res = await fetch("https://stablehorde.net/api/v2/generate/async", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Client-Agent": "AI-Image-Generator-HTML:1.0"
-      },
-      body: JSON.stringify({
-        prompt,
-        params: {
-          width,
-          height,
-          steps,
-          n: 1,
-          sampler_name: "k_euler_a"
-        },
-        nsfw: false
-      })
-    });
-
-    const data = await request.json();
-    if(!data.id) throw new Error("لم يتم استلام معرّف المهمة من الخادم.");
-
-    const jobId = data.id;
-    setStatus("تم إرسال الطلب، جاري الانتظار حتى تُولّد الصورة...");
-
-    let finished = false, imageData = null;
-    while(!finished){
-      await new Promise(r=>setTimeout(r, 4000));
-      const check = await fetch(`https://aihorde.net/api/v2/generate/status/${jobId}`);
-      const checkData = await check.json();
-
-      if(checkData.done){
-        finished = true;
-        if(checkData.generations && checkData.generations[0]){
-          imageData = checkData.generations[0].img;
-        }
-      }else{
-        setStatus(`الصور قيد المعالجة... (${checkData.wait_time.toFixed(1)} ثانية تقريباً)`);
-      }
-    }
-
-    if(imageData){
-      resultEl.src = imageData;
-      setStatus("✅ تم توليد الصورة بنجاح!");
-    }else{
-      throw new Error("لم يتم استلام الصورة من الخادم.");
-    }
-
-  }catch(err){
-    console.error(err);
-    setStatus("❌ فشل: " + err.message);
-    alert("حدث خطأ أثناء التوليد. تحقق من اتصال الإنترنت أو أعد المحاولة لاحقاً.");
-  }
-
-  btn.disabled = false;
-});
-</script>
-</body>
-</html>
+        "Client-Agent":
